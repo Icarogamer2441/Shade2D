@@ -1,0 +1,22 @@
+# Ignore object files
+*.o
+
+# Ignore the static library
+libshade2d.a
+
+# Ignore test executables
+tests/bouncing_ball
+tests/moving_square
+tests/clickable_button
+tests/collision_detect
+
+# Ignore build artifacts
+build/
+
+# Ignore IDE specific files (optional)
+.vscode/
+.idea/
+
+# Ignore OS specific files (optional)
+.DS_Store
+Thumbs.db 
