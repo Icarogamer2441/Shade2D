@@ -14,6 +14,8 @@
 - Basic input handling (mouse buttons)
 - Utility functions (delay)
 - Simple physics (e.g., collision detection)
+- **Multiple Objects List:** Added support for managing a list of objects (circles and rectangles) with functions like `shade2d_create_object_list()`, `shade2d_add_object_to_list()`, `shade2d_get_object_list_size()`, `shade2d_get_object_by_id()`, `shade2d_check_collisions_object_list()`, `shade2d_handle_collisions_object_list()`, `shade2d_draw_object_list()`, and `shade2d_destroy_object_list()`. This allows for easier handling of multiple objects in simulations. Fixes include defining `ObjectID` as an unsigned integer and providing the full `ObjectList2D` struct in the header for proper compilation.
+- **Input Handling:** Expanded to include mouse press detection for circles with `shade2d_is_mouse_pressed_button_circle(Window2D window, int button, Circle2D circle)`, which checks if a mouse button is pressed inside a circle.
 
 ## Getting Started
 
@@ -208,6 +210,9 @@ int main() {
     return 0;
 }
 ```
+
+## Usage
+See the example in `tests/multi_objs.c` for demonstrating multiple objects with gravity and collisions.
 
 ## Contributing
 Pull requests are welcome! For major changes, please open an issue first.

@@ -2,6 +2,7 @@
 #define SHADE2D_H
 
 #include <stdbool.h>
+#include <stddef.h>  // For size_t
 
 // Window management
 typedef struct {
@@ -188,6 +189,7 @@ void shade2d_draw_rectangle(Window2D window, Rectangle2D rectangle);
 
 bool shade2d_is_key_pressed(Window2D window, int key);
 bool shade2d_is_mouse_pressed_button(Window2D window, int button, Rectangle2D rectangle);
+bool shade2d_is_mouse_pressed_button_circle(Window2D window, int button, Circle2D circle);
 
 // Utility
 void shade2d_buffer_init(Window2D window);
@@ -214,5 +216,23 @@ bool shade2d_check_collision_rect_circle(Rectangle2D r, Circle2D c);
 bool shade2d_check_collision_circle_circle(Circle2D c1, Circle2D c2);
 void shade2d_handle_collision_rect_circle(Rectangle2D *r, Circle2D *c);
 void shade2d_handle_collision_circle_circle(Circle2D *c1, Circle2D *c2);
+
+typedef unsigned int ObjectID;  // Define ObjectID as an unsigned integer
+
+typedef struct {
+    Object2D* objects;  // Array of Object2D
+    size_t size;
+    size_t capacity;
+} ObjectList2D;
+
+ObjectList2D shade2d_create_object_list();
+void shade2d_add_object_to_list(ObjectList2D *objects, Object2D obj, ObjectID id);
+size_t shade2d_get_object_list_size(ObjectList2D objects);
+Object2D* shade2d_get_object_by_id(ObjectList2D objects, size_t index);  // Assuming index-based access based on usage
+bool shade2d_check_collisions_object_list(ObjectList2D objects);
+void shade2d_handle_collisions_object_list(ObjectList2D objects);
+void shade2d_destroy_object_list(ObjectList2D objects);
+void shade2d_draw_object_list(Window2D window, ObjectList2D objects);
+ObjectID shade2d_create_object_id();
 
 #endif // SHADE2D_H 

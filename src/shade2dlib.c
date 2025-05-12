@@ -2,10 +2,14 @@
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+// Define ObjectID if not already defined (assuming it's an unsigned int for IDs)
+typedef unsigned int ObjectID;  // This should ideally be in the header, but adding here for completeness if missing
 
 Window2D shade2d_init_window(const char* title, int width, int height) {
     if (!glfwInit()) {
@@ -182,6 +186,24 @@ bool shade2d_is_mouse_pressed_button(Window2D window, int button, Rectangle2D re
                           ypos >= rectangle.y && ypos <= rectangle.y + rectangle.height);
 
         return is_inside && (glfwGetMouseButton(window.handle, button) == GLFW_PRESS);
+    }
+    return false;
+}
+
+bool shade2d_is_mouse_pressed_button_circle(Window2D window, int button, Circle2D circle) {
+    if (window.handle) {
+        double mouseX, mouseY;
+        glfwGetCursorPos(window.handle, &mouseX, &mouseY);
+        
+        // Calculate distance from mouse to circle center
+        float dx = mouseX - circle.x;
+        float dy = mouseY - circle.y;
+        float distance = sqrtf(dx * dx + dy * dy);
+        
+        bool isInside = distance <= circle.radius;
+        bool buttonPressed = glfwGetMouseButton(window.handle, button) == GLFW_PRESS;
+        
+        return isInside && buttonPressed;
     }
     return false;
 }
@@ -387,4 +409,85 @@ bool shade2d_check_collision(Object2D obj1, Object2D obj2) {
     }
     // TODO: Handle other combinations if needed
     return false;
+}
+
+// Implementation of ObjectList2D functions
+
+ObjectList2D shade2d_create_object_list() {
+    ObjectList2D list;
+    list.objects = malloc(10 * sizeof(Object2D));  // Initial capacity of 10
+    list.size = 0;
+    list.capacity = 10;
+    return list;
+}
+
+void shade2d_add_object_to_list(ObjectList2D *objects, Object2D obj, ObjectID id) {
+    (void)id;  // Acknowledge unused parameter to suppress warning
+    if (objects->size >= objects->capacity) {
+        objects->capacity *= 2;
+        objects->objects = realloc(objects->objects, objects->capacity * sizeof(Object2D));
+    }
+    objects->objects[objects->size] = obj;  // Store the object
+    objects->size++;
+    // In a full implementation, you might associate the ID here, e.g., in a separate array
+}
+
+size_t shade2d_get_object_list_size(ObjectList2D objects) {
+    return objects.size;
+}
+
+Object2D* shade2d_get_object_by_id(ObjectList2D objects, size_t index) {  // Treating index as ID for now
+    if (index < objects.size) {
+        return &objects.objects[index];
+    }
+    return NULL;  // Or handle error
+}
+
+bool shade2d_check_collisions_object_list(ObjectList2D objects) {
+    for (size_t i = 0; i < objects.size; i++) {
+        for (size_t j = i + 1; j < objects.size; j++) {
+            if (shade2d_check_collision(objects.objects[i], objects.objects[j])) {
+                return true;  // Collision found
+            }
+        }
+    }
+    return false;
+}
+
+void shade2d_handle_collisions_object_list(ObjectList2D objects) {
+    for (size_t i = 0; i < objects.size; i++) {
+        for (size_t j = i + 1; j < objects.size; j++) {
+            if (shade2d_check_collision(objects.objects[i], objects.objects[j])) {
+                // Handle based on types
+                if (objects.objects[i].type == SHAD2D_RECTANGLE && objects.objects[j].type == SHAD2D_RECTANGLE) {
+                    shade2d_handle_collision_rect_rect(&objects.objects[i].obj.rect, &objects.objects[j].obj.rect);
+                } else if (objects.objects[i].type == SHAD2D_RECTANGLE && objects.objects[j].type == SHAD2D_CIRCLE) {
+                    shade2d_handle_collision_rect_circle(&objects.objects[i].obj.rect, &objects.objects[j].obj.circle);
+                } else if (objects.objects[i].type == SHAD2D_CIRCLE && objects.objects[j].type == SHAD2D_RECTANGLE) {
+                    shade2d_handle_collision_rect_circle(&objects.objects[j].obj.rect, &objects.objects[i].obj.circle);
+                } else if (objects.objects[i].type == SHAD2D_CIRCLE && objects.objects[j].type == SHAD2D_CIRCLE) {
+                    shade2d_handle_collision_circle_circle(&objects.objects[i].obj.circle, &objects.objects[j].obj.circle);
+                }
+            }
+        }
+    }
+}
+
+void shade2d_draw_object_list(Window2D window, ObjectList2D objects) {
+    for (size_t i = 0; i < objects.size; i++) {
+        if (objects.objects[i].type == SHAD2D_CIRCLE) {
+            shade2d_draw_circle(window, objects.objects[i].obj.circle);
+        } else if (objects.objects[i].type == SHAD2D_RECTANGLE) {
+            shade2d_draw_rectangle(window, objects.objects[i].obj.rect);
+        }
+    }
+}
+
+void shade2d_destroy_object_list(ObjectList2D objects) {
+    free(objects.objects);  // Free the allocated array
+}
+
+ObjectID shade2d_create_object_id() {
+    static ObjectID next_id = 0;  // Static to maintain state
+    return next_id++;
 } 
